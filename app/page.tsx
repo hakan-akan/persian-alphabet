@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
-import { letterForms, wordExamples } from './examples';
+import { examplesForPosition, letterForms, type LetterPosition } from './examples';
 import { TracingPad } from './tracing-pad';
 
 type Mode = 'learn' | 'trace' | 'quiz';
@@ -63,6 +63,7 @@ const saveLearned = (letters: string[]) => {
 export default function Home() {
   const [mode, setMode] = useState<Mode>('learn');
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [activePosition, setActivePosition] = useState<LetterPosition>('initial');
   const [learned, setLearned] = useState<string[]>([]);
   const [streak, setStreak] = useState(1);
   const [notice, setNotice] = useState<string | null>(null);
@@ -72,7 +73,7 @@ export default function Home() {
   const [quizTotal, setQuizTotal] = useState(0);
 
   const current = alphabet[selectedIndex];
-  const currentExamples = wordExamples[selectedIndex];
+  const currentExamples = examplesForPosition(current.letter, activePosition);
   const currentForms = letterForms(current.letter, current.connectsLeft);
   const progress = Math.round((learned.length / alphabet.length) * 100);
 
@@ -115,6 +116,7 @@ export default function Home() {
           const index = alphabet.findIndex((item) => item.letter === letter);
           if (index < 0) throw new Error('Please provide one of the 32 Persian letters.');
           setSelectedIndex(index);
+          setActivePosition('initial');
           setMode('learn');
           return { letter, name: alphabet[index].name, lesson: index + 1 };
         },
@@ -169,6 +171,7 @@ export default function Home() {
 
   const selectLetter = (index: number, nextMode: Mode = 'learn') => {
     setSelectedIndex(index);
+    setActivePosition('initial');
     setMode(nextMode);
     setQuizAnswer(null);
   };
@@ -180,7 +183,10 @@ export default function Home() {
       return next;
     });
     setNotice(`${current.name} is now in your learned set.`);
-    if (moveNext && selectedIndex < alphabet.length - 1) setSelectedIndex((value) => value + 1);
+    if (moveNext && selectedIndex < alphabet.length - 1) {
+      setSelectedIndex((value) => value + 1);
+      setActivePosition('initial');
+    }
   };
 
   const optionIndexes = useMemo(() => {
@@ -298,13 +304,25 @@ export default function Home() {
                         <Button variant="ghost" size="icon" aria-label={`Hear ${current.word}`} onClick={speak} className="rounded-full text-[#607168]"><Headphones /></Button>
                       </div>
                       <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" dir="ltr">
-                        {currentForms.map((form) => (
-                          <div key={form.label} className="rounded-xl border border-[#e5e1d7] bg-white px-2 py-3 text-center">
-                            <div className="font-persian min-h-11 text-4xl font-bold text-[#173e33]" dir="rtl">{form.glyph}</div>
-                            <p className="mt-1 text-[10px] font-bold uppercase tracking-[.12em] text-[#727e76]">{form.label}</p>
-                            <p className="font-persian mt-0.5 text-[11px] text-[#9b7a4d]" dir="rtl">{form.persianLabel}</p>
-                          </div>
-                        ))}
+                        {currentForms.map((form) => {
+                          const position = form.label.toLowerCase() as LetterPosition | 'isolated';
+                          const selectable = position !== 'isolated';
+                          const active = selectable && activePosition === position;
+                          return (
+                          <button
+                            key={form.label}
+                            type="button"
+                            disabled={!selectable}
+                            onClick={() => selectable && setActivePosition(position)}
+                            aria-pressed={active}
+                            aria-label={selectable ? `Show ${form.label.toLowerCase()} position examples` : 'Isolated letter form'}
+                            className={`rounded-xl border px-2 py-3 text-center transition ${active ? 'border-[#173e33] bg-[#173e33] shadow-md' : selectable ? 'border-[#e5e1d7] bg-white hover:-translate-y-0.5 hover:border-[#d49a50] hover:shadow-sm' : 'cursor-default border-[#e5e1d7] bg-[#f7f5ef]'}`}
+                          >
+                            <div className={`font-persian min-h-11 text-4xl font-bold ${active ? 'text-white' : 'text-[#173e33]'}`} dir="rtl">{form.glyph}</div>
+                            <p className={`mt-1 text-[10px] font-bold uppercase tracking-[.12em] ${active ? 'text-[#f4c982]' : 'text-[#727e76]'}`}>{form.label}</p>
+                            <p className={`font-persian mt-0.5 text-[11px] ${active ? 'text-[#cce0d6]' : 'text-[#9b7a4d]'}`} dir="rtl">{form.persianLabel}</p>
+                          </button>
+                        );})}
                       </div>
                       {!current.connectsLeft && <p className="mt-3 text-xs leading-5 text-[#7c7568]">This is a non-connector, so some positions share the same shape.</p>}
                     </div>
@@ -312,8 +330,8 @@ export default function Home() {
                     <div className="mt-5">
                       <div className="mb-3 flex items-end justify-between gap-3">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">Picture words</p>
-                          <p className="mt-1 text-xs text-[#778079]">Connect the letter with a memorable image.</p>
+                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">{activePosition} position · picture words</p>
+                          <p className="mt-1 text-xs text-[#778079]">Each word places {current.letter} in the {activePosition} position.</p>
                         </div>
                         <button onClick={speak} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
                       </div>
@@ -333,7 +351,7 @@ export default function Home() {
                   </div>
 
                   <div className="mt-8 flex flex-wrap items-center justify-between gap-3 border-t border-[#e5e1d7] pt-6">
-                    <Button variant="ghost" className="h-11 rounded-full px-4 text-[#78837c]" disabled={selectedIndex === 0} onClick={() => setSelectedIndex((value) => Math.max(0, value - 1))}><ChevronLeft /> Previous</Button>
+                      <Button variant="ghost" className="h-11 rounded-full px-4 text-[#78837c]" disabled={selectedIndex === 0} onClick={() => { setSelectedIndex((value) => Math.max(0, value - 1)); setActivePosition('initial'); }}><ChevronLeft /> Previous</Button>
                     <div className="flex gap-2">
                       <Button variant="outline" onClick={() => setMode('trace')} className="h-11 rounded-full px-4"><PenLine /> Trace it</Button>
                       <Button onClick={() => markLearned(true)} className="h-11 rounded-full bg-[#173e33] px-5 text-white hover:bg-[#245849]">{learned.includes(current.letter) ? 'Next letter' : 'I learned this'} <Check className="ml-1" /></Button>
