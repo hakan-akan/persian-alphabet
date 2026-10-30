@@ -5,6 +5,7 @@ import { BrainCircuit, Check, Headphones, RotateCcw, Shapes, Volume2 } from 'luc
 import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
 import { letterForms } from './examples';
+import { persianLetterNames, speakPersian } from './persian-speech';
 
 type ReviewMode = 'mixed' | 'form' | 'sound';
 type Rating = 'hard' | 'unsure' | 'easy';
@@ -60,10 +61,7 @@ export function ReviewPractice() {
   }, [targetIndex, questionNumber]);
 
   const playSound = () => {
-    const number = String(targetIndex + 1).padStart(2, '0');
-    const audio = new Audio(`/audio/${number}.wav`);
-    audio.preload = 'auto';
-    void audio.play();
+    void speakPersian(persianLetterNames[targetIndex], targetIndex);
   };
 
   const choose = (index: number) => {

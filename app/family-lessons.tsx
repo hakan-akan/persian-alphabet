@@ -5,6 +5,7 @@ import { Check, ChevronRight, Headphones, Lightbulb, Shapes, Volume2 } from 'luc
 import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
 import { letterForms } from './examples';
+import { persianLetterNames, speakPersian } from './persian-speech';
 
 type Family = {
   title: string;
@@ -43,10 +44,7 @@ export function FamilyLessons({ onOpenLetter }: { onOpenLetter: (index: number) 
   };
 
   const play = (index: number) => {
-    const number = String(index + 1).padStart(2, '0');
-    const audio = new Audio(`/audio/${number}.wav`);
-    audio.preload = 'auto';
-    void audio.play();
+    void speakPersian(persianLetterNames[index], index);
   };
 
   const chooseAnswer = (index: number) => {
