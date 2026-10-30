@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   ArrowLeft,
   BookOpen,
@@ -473,6 +473,38 @@ function MobileMode({ active, icon, label, onClick }: { active: boolean; icon: R
 }
 
 function AlphabetPanel({ selectedIndex, learned, onSelect }: { selectedIndex: number; learned: string[]; onSelect: (index: number) => void }) {
+  const [preview, setPreview] = useState<{ index: number; left: number; top: number; below: boolean } | null>(null);
+  const previewTimer = useRef<number | null>(null);
+
+  useEffect(() => () => {
+    if (previewTimer.current !== null) window.clearTimeout(previewTimer.current);
+  }, []);
+
+  const hidePreview = () => {
+    if (previewTimer.current !== null) window.clearTimeout(previewTimer.current);
+    previewTimer.current = null;
+    setPreview(null);
+  };
+
+  const showPreview = (index: number, target: HTMLElement, delayed: boolean) => {
+    if (previewTimer.current !== null) window.clearTimeout(previewTimer.current);
+    const bounds = target.getBoundingClientRect();
+    const open = () => {
+      const below = bounds.top < 170;
+      setPreview({
+        index,
+        left: Math.min(window.innerWidth - 116, Math.max(116, bounds.left + bounds.width / 2)),
+        top: below ? bounds.bottom + 10 : bounds.top - 10,
+        below,
+      });
+      previewTimer.current = null;
+    };
+    previewTimer.current = window.setTimeout(open, delayed ? 650 : 0);
+  };
+
+  const previewLetter = preview ? alphabet[preview.index] : null;
+  const joinedForms = previewLetter ? letterForms(previewLetter.letter, previewLetter.connectsLeft).slice(1) : [];
+
   return (
     <aside className="rounded-[28px] border border-[#d8d5c9] bg-white/70 p-5 lg:self-start">
       <div className="flex items-center justify-between">
@@ -489,7 +521,12 @@ function AlphabetPanel({ selectedIndex, learned, onSelect }: { selectedIndex: nu
             <button
               key={item.letter}
               aria-label={`Open ${item.name}`}
-              onClick={() => onSelect(index)}
+              aria-describedby={preview?.index === index ? 'alphabet-form-tooltip' : undefined}
+              onClick={() => { hidePreview(); onSelect(index); }}
+              onMouseEnter={(event) => showPreview(index, event.currentTarget, true)}
+              onMouseLeave={hidePreview}
+              onFocus={(event) => showPreview(index, event.currentTarget, false)}
+              onBlur={hidePreview}
               className={`font-persian relative grid aspect-square place-items-center rounded-xl border text-2xl transition ${selectedIndex === index ? 'border-[#173e33] bg-[#173e33] text-white shadow-md' : 'border-[#e4e1d8] bg-[#fbfaf7] text-[#647069] hover:border-[#d39a55] hover:text-[#173e33]'}`}
             >
               {item.letter}
@@ -498,6 +535,25 @@ function AlphabetPanel({ selectedIndex, learned, onSelect }: { selectedIndex: nu
           );
         })}
       </div>
+      {preview && previewLetter && (
+        <div
+          id="alphabet-form-tooltip"
+          role="tooltip"
+          dir="ltr"
+          style={{ left: preview.left, top: preview.top }}
+          className={`pointer-events-none fixed z-[70] w-[220px] -translate-x-1/2 rounded-2xl border border-[#d5d2c7] bg-[#fffdf8] p-3 shadow-[0_16px_45px_rgba(28,48,39,.2)] ${preview.below ? '' : '-translate-y-full'}`}
+        >
+          <p className="text-center text-[11px] font-bold uppercase tracking-[.12em] text-[#78837c]">{previewLetter.name} · joined forms</p>
+          <div className="mt-2 grid grid-cols-3 gap-1.5">
+            {joinedForms.map((form) => (
+              <div key={form.label} className="rounded-xl bg-[#edf3ef] px-1 py-2 text-center">
+                <p className="font-persian text-2xl font-bold text-[#173e33]" dir="rtl">{form.glyph}</p>
+                <p className="mt-1 text-[10px] font-bold text-[#66736b]">{form.label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       <div className="mt-5 flex items-center gap-3 rounded-2xl bg-[#edf3ef] p-4">
         <div className="grid size-10 shrink-0 place-items-center rounded-full bg-white text-[#285544]"><Headphones className="size-5" /></div>
         <p className="text-xs leading-5 text-[#5f6e65]">Listen first, repeat three times, then trace the shape.</p>
