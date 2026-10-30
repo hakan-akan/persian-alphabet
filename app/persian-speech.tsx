@@ -41,18 +41,20 @@ const waitForPersianVoices = async () => {
 
 export const speakPersian = async (text: string, fallbackIndex?: number) => {
   const voices = await waitForPersianVoices();
-  if (voices.length) {
+  if (voices.length || fallbackIndex === undefined) {
     const preferred = localStorage.getItem(voiceKey);
     const voice = voices.find((item) => item.voiceURI === preferred) || voices[0];
     const rate = Number(localStorage.getItem(rateKey) || '0.88');
     const utterance = new SpeechSynthesisUtterance(text);
-    utterance.voice = voice;
-    utterance.lang = voice.lang || 'fa-IR';
+    if (voice) utterance.voice = voice;
+    utterance.lang = voice?.lang || 'fa-IR';
     utterance.rate = Number.isFinite(rate) ? rate : 0.88;
     utterance.pitch = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(utterance);
-    return;
+    if ('speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+      window.speechSynthesis.speak(utterance);
+      return;
+    }
   }
 
   if (fallbackIndex !== undefined) {

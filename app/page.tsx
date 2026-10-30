@@ -158,7 +158,7 @@ export default function Home() {
   }, []);
 
   const speak = () => {
-    void speakPersian(current.word, selectedIndex).catch(() => setNotice('Audio could not start. Check that this tab is not muted.'));
+    void speakPersian(current.word).catch(() => setNotice('Audio could not start. Check that this tab is not muted.'));
   };
 
   const selectLetter = (index: number, nextMode: Mode = 'learn') => {
@@ -328,14 +328,14 @@ export default function Home() {
                           <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">{activePosition} position · picture words</p>
                           <p className="mt-1 text-xs text-[#778079]">Each word places {current.letter} in the {activePosition} position.</p>
                         </div>
-                        <button onClick={() => void speakPersian(currentExamples[0]?.word || current.word, selectedIndex)} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
+                        <button onClick={() => void speakPersian(currentExamples[0]?.word || current.word)} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
                       </div>
                       <div className="grid grid-cols-3 gap-2">
                         {currentExamples.map((example) => (
                           <div key={example.word} className="overflow-hidden rounded-2xl border border-[#e1ded3] bg-white">
                             <div className="grid min-h-24 place-items-center bg-[linear-gradient(145deg,#edf3ef,#f8f1e3)] text-5xl" role="img" aria-label={`Picture for ${example.meaning}`}>{example.picture}</div>
                             <div className="relative p-3 text-center">
-                              <button onClick={() => void speakPersian(example.word, selectedIndex)} className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-[#edf3ef] text-[#2f5b49] hover:bg-[#dcebe2]" aria-label={`Hear ${example.word}`}><Volume2 className="size-3.5" /></button>
+                              <button onClick={() => void speakPersian(example.word)} className="absolute right-2 top-2 grid size-7 place-items-center rounded-full bg-[#edf3ef] text-[#2f5b49] hover:bg-[#dcebe2]" aria-label={`Hear ${example.word}`}><Volume2 className="size-3.5" /></button>
                               <p className="font-persian text-2xl font-bold text-[#173e33]" dir="rtl">{example.word}</p>
                               <p className="mt-1 truncate text-xs font-bold text-[#46574e]">{example.transliteration}</p>
                               <p className="mt-0.5 truncate text-[11px] text-[#7b857e]">{example.meaning}</p>
