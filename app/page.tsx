@@ -367,11 +367,13 @@ export default function Home() {
               <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
                 <div>
                   <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a56c28]">Trace {current.name}</p>
-                  <h2 className="font-display mt-2 text-2xl font-bold">Follow the pale guide with your finger or pointer.</h2>
+                  <h2 className="font-display mt-2 text-2xl font-bold">Practice all four forms of the letter.</h2>
                 </div>
-                <div className="font-persian grid size-16 place-items-center rounded-2xl bg-[#173e33] text-4xl text-white">{current.letter}</div>
+                <div className="flex items-center gap-1 rounded-2xl bg-[#173e33] px-4 py-3 text-white" dir="ltr">
+                  {currentForms.map((form) => <span key={form.label} className="font-persian text-3xl">{form.glyph}</span>)}
+                </div>
               </div>
-              <TracingPad letter={current.letter} onComplete={() => { markLearned(false); setNotice(`Beautiful — you traced ${current.name}.`); }} />
+              <TracingPad letter={current.letter} forms={currentForms} onComplete={() => { markLearned(false); setNotice(`Beautiful — you traced all four forms of ${current.name}.`); }} />
               <div className="mt-6 flex items-start gap-3 rounded-2xl bg-[#f7f2e8] p-4 text-sm leading-6 text-[#655947]">
                 <Lightbulb className="mt-0.5 size-5 shrink-0 text-[#bd7929]" />
                 <p>Start slowly and aim for the overall rhythm of the shape. Persian handwriting becomes more fluid with repetition, not perfection.</p>
