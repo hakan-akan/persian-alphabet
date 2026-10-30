@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
+import { letterForms, wordExamples } from './examples';
 import { TracingPad } from './tracing-pad';
 
 type Mode = 'learn' | 'trace' | 'quiz';
@@ -71,6 +72,8 @@ export default function Home() {
   const [quizTotal, setQuizTotal] = useState(0);
 
   const current = alphabet[selectedIndex];
+  const currentExamples = wordExamples[selectedIndex];
+  const currentForms = letterForms(current.letter, current.connectsLeft);
   const progress = Math.round((learned.length / alphabet.length) * 100);
 
   useEffect(() => {
@@ -147,18 +150,21 @@ export default function Home() {
     return () => lifecycle.abort();
   }, []);
 
-  const speak = (text = current.word) => {
-    if (!('speechSynthesis' in window)) {
-      setNotice('Pronunciation is not available in this browser.');
-      return;
-    }
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = 'fa-IR';
-    utterance.rate = 0.72;
-    const voice = window.speechSynthesis.getVoices().find((item) => item.lang.toLowerCase().startsWith('fa'));
-    if (voice) utterance.voice = voice;
-    window.speechSynthesis.speak(utterance);
+  const speak = () => {
+    const number = String(selectedIndex + 1).padStart(2, '0');
+    const audio = new Audio(`/audio/${number}.wav`);
+    audio.preload = 'auto';
+    void audio.play().catch(() => {
+      if (!('speechSynthesis' in window)) {
+        setNotice('Audio could not start. Check that this tab is not muted.');
+        return;
+      }
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(current.word);
+      utterance.lang = 'fa-IR';
+      utterance.rate = 0.72;
+      window.speechSynthesis.speak(utterance);
+    });
   };
 
   const selectLetter = (index: number, nextMode: Mode = 'learn') => {
@@ -269,7 +275,7 @@ export default function Home() {
                         <p className="text-xs font-bold uppercase tracking-[.16em] text-[#a56c28]">Notice the shape</p>
                         <h2 className="font-display mt-2 text-3xl font-bold">{current.memory}</h2>
                       </div>
-                      <Button aria-label={`Hear ${current.word}`} onClick={() => speak()} className="size-12 rounded-full bg-[#e89c3e] text-[#3d2a10] hover:bg-[#f2ae59]"><Volume2 className="size-5" /></Button>
+                      <Button aria-label={`Hear ${current.word}`} onClick={speak} className="size-12 rounded-full bg-[#e89c3e] text-[#3d2a10] hover:bg-[#f2ae59]"><Volume2 className="size-5" /></Button>
                     </div>
 
                     <div className="mt-6 grid gap-3 sm:grid-cols-2">
@@ -284,16 +290,44 @@ export default function Home() {
                     </div>
 
                     <div className="mt-5 rounded-2xl border border-[#e4dfd2] bg-[#fbfaf6] p-5">
-                      <div className="flex items-center justify-between gap-4">
+                      <div className="flex items-center justify-between gap-3">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">Example word</p>
-                          <p className="mt-2 text-base font-bold text-[#35463d]">{current.transliteration}</p>
-                          <p className="mt-0.5 text-sm text-[#6d776f]">{current.meaning}</p>
+                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">The letter in context</p>
+                          <p className="mt-1 text-xs text-[#778079]">Persian letters reshape as they join a word.</p>
                         </div>
-                        <div className="flex items-center gap-4">
-                          <Button variant="ghost" size="icon" aria-label={`Hear ${current.word}`} onClick={() => speak()} className="rounded-full text-[#607168]"><Headphones /></Button>
-                          <div className="font-persian text-5xl font-bold text-[#173e33]" dir="rtl">{current.word}</div>
+                        <Button variant="ghost" size="icon" aria-label={`Hear ${current.word}`} onClick={speak} className="rounded-full text-[#607168]"><Headphones /></Button>
+                      </div>
+                      <div className="mt-4 grid grid-cols-2 gap-2 sm:grid-cols-4" dir="ltr">
+                        {currentForms.map((form) => (
+                          <div key={form.label} className="rounded-xl border border-[#e5e1d7] bg-white px-2 py-3 text-center">
+                            <div className="font-persian min-h-11 text-4xl font-bold text-[#173e33]" dir="rtl">{form.glyph}</div>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-[.12em] text-[#727e76]">{form.label}</p>
+                            <p className="font-persian mt-0.5 text-[11px] text-[#9b7a4d]" dir="rtl">{form.persianLabel}</p>
+                          </div>
+                        ))}
+                      </div>
+                      {!current.connectsLeft && <p className="mt-3 text-xs leading-5 text-[#7c7568]">This is a non-connector, so some positions share the same shape.</p>}
+                    </div>
+
+                    <div className="mt-5">
+                      <div className="mb-3 flex items-end justify-between gap-3">
+                        <div>
+                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">Picture words</p>
+                          <p className="mt-1 text-xs text-[#778079]">Connect the letter with a memorable image.</p>
                         </div>
+                        <button onClick={speak} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2">
+                        {currentExamples.map((example) => (
+                          <div key={example.word} className="overflow-hidden rounded-2xl border border-[#e1ded3] bg-white">
+                            <div className="grid min-h-24 place-items-center bg-[linear-gradient(145deg,#edf3ef,#f8f1e3)] text-5xl" role="img" aria-label={`Picture for ${example.meaning}`}>{example.picture}</div>
+                            <div className="p-3 text-center">
+                              <p className="font-persian text-2xl font-bold text-[#173e33]" dir="rtl">{example.word}</p>
+                              <p className="mt-1 truncate text-xs font-bold text-[#46574e]">{example.transliteration}</p>
+                              <p className="mt-0.5 truncate text-[11px] text-[#7b857e]">{example.meaning}</p>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
                   </div>
