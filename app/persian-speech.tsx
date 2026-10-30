@@ -5,6 +5,7 @@ import { Gauge, Mic2 } from 'lucide-react';
 
 const rateKey = 'dabestan-speech-rate';
 const supportedRates = ['0.82', '1', '1.15'];
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || '';
 let activeAudio: HTMLAudioElement | null = null;
 
 export const persianLetterNames = [
@@ -27,7 +28,7 @@ const speechRate = () => {
 const bundledAudioPath = (text: string) => {
   const bytes = new TextEncoder().encode(text);
   const name = Array.from(bytes, (byte) => byte.toString(16).padStart(2, '0')).join('');
-  return `/audio/tts/${name}.mp3`;
+  return `${basePath}/audio/tts/${name}.mp3`;
 };
 
 export const speakPersian = async (text: string, fallbackIndex?: number) => {
@@ -56,7 +57,7 @@ export const speakPersian = async (text: string, fallbackIndex?: number) => {
 
   if (fallbackIndex !== undefined) {
     const number = String(fallbackIndex + 1).padStart(2, '0');
-    const audio = new Audio(`/audio/${number}.wav`);
+    const audio = new Audio(`${basePath}/audio/${number}.wav`);
     audio.preload = 'auto';
     await audio.play();
   }

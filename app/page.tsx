@@ -29,6 +29,7 @@ import { FamilyLessons } from './family-lessons';
 import { speakPersian, SpeechPreferences } from './persian-speech';
 
 type Mode = 'learn' | 'trace' | 'families' | 'review' | 'quiz';
+export const dynamic = 'force-static';
 type ToolInput = Record<string, unknown>;
 type ModelTool = {
   name: string;
