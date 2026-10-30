@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft,
   BookOpen,
+  BrainCircuit,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -22,8 +23,9 @@ import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
 import { examplesForPosition, letterForms, type LetterPosition } from './examples';
 import { TracingPad } from './tracing-pad';
+import { ReviewPractice } from './review-practice';
 
-type Mode = 'learn' | 'trace' | 'quiz';
+type Mode = 'learn' | 'trace' | 'review' | 'quiz';
 type ToolInput = Record<string, unknown>;
 type ModelTool = {
   name: string;
@@ -228,6 +230,7 @@ export default function Home() {
           <nav className="hidden items-center rounded-full border border-[#ddd9cc] bg-white/70 p-1 md:flex" aria-label="Learning modes">
             <ModeButton active={mode === 'learn'} icon={<BookOpen />} label="Learn" onClick={() => setMode('learn')} />
             <ModeButton active={mode === 'trace'} icon={<PenLine />} label="Trace" onClick={() => setMode('trace')} />
+            <ModeButton active={mode === 'review'} icon={<BrainCircuit />} label="Review" onClick={() => setMode('review')} />
             <ModeButton active={mode === 'quiz'} icon={<Trophy />} label="Quiz" onClick={() => setMode('quiz')} />
           </nav>
 
@@ -246,10 +249,10 @@ export default function Home() {
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em] text-[#a56c28]">
-              <Sparkles className="size-3.5" /> {mode === 'learn' ? `Lesson ${selectedIndex + 1} of 32` : mode === 'trace' ? `Writing practice · ${current.name}` : 'Quick review'}
+              <Sparkles className="size-3.5" /> {mode === 'learn' ? `Lesson ${selectedIndex + 1} of 32` : mode === 'trace' ? `Writing practice · ${current.name}` : mode === 'review' ? 'Memory practice' : 'Quick quiz'}
             </p>
             <h1 className="font-display mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              {mode === 'learn' ? 'Meet the Persian alphabet' : mode === 'trace' ? 'Build muscle memory' : 'Test what you remember'}
+              {mode === 'learn' ? 'Meet the Persian alphabet' : mode === 'trace' ? 'Build muscle memory' : mode === 'review' ? 'Review at the right time' : 'Test what you remember'}
             </h1>
           </div>
           <div className="hidden w-[250px] sm:block">
@@ -431,6 +434,8 @@ export default function Home() {
             </article>
           )}
 
+          {mode === 'review' && <ReviewPractice />}
+
           <AlphabetPanel selectedIndex={selectedIndex} learned={learned} onSelect={selectLetter} />
         </div>
 
@@ -442,6 +447,7 @@ export default function Home() {
       <nav className="fixed inset-x-3 bottom-3 z-40 flex items-center justify-around rounded-2xl border border-[#d4d0c3] bg-[#fffdf8]/95 p-2 shadow-[0_10px_35px_rgba(31,49,40,.18)] backdrop-blur-lg md:hidden" aria-label="Learning modes">
         <MobileMode active={mode === 'learn'} icon={<BookOpen />} label="Learn" onClick={() => setMode('learn')} />
         <MobileMode active={mode === 'trace'} icon={<PenLine />} label="Trace" onClick={() => setMode('trace')} />
+        <MobileMode active={mode === 'review'} icon={<BrainCircuit />} label="Review" onClick={() => setMode('review')} />
         <MobileMode active={mode === 'quiz'} icon={<Trophy />} label="Quiz" onClick={() => setMode('quiz')} />
       </nav>
 
