@@ -66,6 +66,14 @@ const saveLearned = (letters: string[]) => {
   localStorage.setItem('dabestan-learned', JSON.stringify(letters));
 };
 
+const normalizedLetter = (letter: string) => letter
+  .replace(/[آأإ]/g, 'ا')
+  .replace(/ي/g, 'ی')
+  .replace(/ك/g, 'ک');
+
+const separatedLetters = (word: string) => Array.from(word.normalize('NFC'))
+  .filter((character) => !/[\s\u200c\u200d]/u.test(character));
+
 export default function Home() {
   const [mode, setMode] = useState<Mode>('learn');
   const [selectedIndex, setSelectedIndex] = useState(0);
@@ -331,7 +339,11 @@ export default function Home() {
                         </div>
                         <button onClick={() => void speakPersian(currentExamples[0]?.word || current.word)} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
                       </div>
-                      <div className="grid grid-cols-3 gap-2">
+                      <div className="mb-3 flex items-center gap-2 rounded-xl bg-[#f7f2e8] px-3 py-2 text-[11px] leading-4 text-[#6e6252]">
+                        <span className="font-persian text-lg font-bold text-[#173e33]" dir="rtl">بـه‌هـم ← ب ه م</span>
+                        <span>Connected word → separate letters. Read Persian from right to left; the gold tile is today&apos;s letter.</span>
+                      </div>
+                      <div className="grid gap-2 sm:grid-cols-3">
                         {currentExamples.map((example) => (
                           <div key={example.word} className="overflow-hidden rounded-2xl border border-[#e1ded3] bg-white">
                             <div className="grid min-h-24 place-items-center bg-[linear-gradient(145deg,#edf3ef,#f8f1e3)] text-5xl" role="img" aria-label={`Picture for ${example.meaning}`}>{example.picture}</div>
@@ -340,6 +352,22 @@ export default function Home() {
                               <p className="font-persian text-2xl font-bold text-[#173e33]" dir="rtl">{example.word}</p>
                               <p className="mt-1 truncate text-xs font-bold text-[#46574e]">{example.transliteration}</p>
                               <p className="mt-0.5 truncate text-[11px] text-[#7b857e]">{example.meaning}</p>
+                              <div className="mt-3 border-t border-[#eee9df] pt-2">
+                                <p className="mb-1.5 text-[9px] font-bold uppercase tracking-[.14em] text-[#8c938e]">Letters, separated</p>
+                                <div className="flex flex-wrap justify-center gap-1" dir="rtl" aria-label={`${example.word}, separated into ${separatedLetters(example.word).join('، ')}`}>
+                                  {separatedLetters(example.word).map((letter, letterIndex) => {
+                                    const isLessonLetter = normalizedLetter(letter) === normalizedLetter(current.letter);
+                                    return (
+                                      <span
+                                        key={`${letter}-${letterIndex}`}
+                                        className={`font-persian grid size-7 place-items-center rounded-md border text-lg font-bold ${isLessonLetter ? 'border-[#d59032] bg-[#f7d99f] text-[#5b390d]' : 'border-[#dfe5e1] bg-[#f5f8f6] text-[#24483a]'}`}
+                                      >
+                                        {letter}
+                                      </span>
+                                    );
+                                  })}
+                                </div>
+                              </div>
                             </div>
                           </div>
                         ))}
