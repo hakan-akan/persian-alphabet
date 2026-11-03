@@ -84,7 +84,33 @@ const positionExtras: WordExample[] = [
 ];
 
 const normalizePersian = (value: string) =>
-  value.replace(/[آأإ]/g, 'ا').replace(/ي/g, 'ی').replace(/ك/g, 'ک').replace(/\u200c/g, '');
+  value.replace(/[آأإ]/g, 'ا').replace(/ي/g, 'ی').replace(/ك/g, 'ک');
+
+const nonForwardJoiners = new Set(['ا', 'د', 'ذ', 'ر', 'ز', 'ژ', 'و']);
+const isPersianLetter = (character: string) => /[\u0621-\u063A\u0641-\u064A\u067E\u0686\u0698\u06A9\u06AF\u06CC]/u.test(character);
+const isJoinBoundary = (character: string) => character === '\u200c' || character === '\u200d' || !isPersianLetter(character);
+const joinsForward = (character: string) => !isJoinBoundary(character) && !nonForwardJoiners.has(normalizePersian(character));
+
+const formAt = (word: string, index: number): LetterPosition | 'isolated' => {
+  const characters = Array.from(word.normalize('NFC'));
+  const current = characters[index];
+  const previous = characters[index - 1];
+  const next = characters[index + 1];
+  const joinsPrevious = Boolean(previous) && joinsForward(previous) && !isJoinBoundary(current);
+  const joinsNext = Boolean(next) && joinsForward(current) && !isJoinBoundary(next);
+
+  if (joinsPrevious && joinsNext) return 'medial';
+  if (joinsPrevious) return 'final';
+  if (joinsNext) return 'initial';
+  return 'isolated';
+};
+
+export const wordUsesForm = (word: string, letter: string, position: LetterPosition) => {
+  const target = normalizePersian(letter);
+  return Array.from(word.normalize('NFC')).some((character, index) =>
+    normalizePersian(character) === target && formAt(word, index) === position
+  );
+};
 
 export const examplesForPosition = (letter: string, position: LetterPosition): WordExample[] => {
   const target = normalizePersian(letter);
@@ -92,12 +118,7 @@ export const examplesForPosition = (letter: string, position: LetterPosition): W
   const seen = new Set<string>();
 
   return candidates.filter((example) => {
-    const word = normalizePersian(example.word);
-    const matches = position === 'initial'
-      ? word.startsWith(target)
-      : position === 'final'
-        ? word.endsWith(target)
-        : word.slice(1, -1).includes(target);
+    const matches = wordUsesForm(example.word, target, position);
 
     if (!matches || seen.has(example.word)) return false;
     seen.add(example.word);

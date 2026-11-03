@@ -334,10 +334,10 @@ export default function Home() {
                     <div className="mt-5">
                       <div className="mb-3 flex items-end justify-between gap-3">
                         <div>
-                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">{activePosition} position · picture words</p>
-                          <p className="mt-1 text-xs text-[#778079]">Each word places {current.letter} in the {activePosition} position.</p>
+                          <p className="text-xs font-bold uppercase tracking-[.15em] text-[#89928c]">{activePosition} form · picture words</p>
+                          <p className="mt-1 text-xs text-[#778079]">Each word shows {current.letter} actually connected in its {activePosition} form.</p>
                         </div>
-                        <button onClick={() => void speakPersian(currentExamples[0]?.word || current.word)} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f]"><Volume2 className="size-3.5" /> Hear the first word</button>
+                        <button disabled={!currentExamples.length} onClick={() => currentExamples[0] && void speakPersian(currentExamples[0].word)} className="flex items-center gap-1.5 text-xs font-bold text-[#a6631d] hover:text-[#74420f] disabled:cursor-not-allowed disabled:text-[#a9aaa4]"><Volume2 className="size-3.5" /> Hear the first word</button>
                       </div>
                       <div className="mb-3 flex items-center gap-2 rounded-xl bg-[#f7f2e8] px-3 py-2 text-[11px] leading-4 text-[#6e6252]">
                         <span className="font-persian text-lg font-bold text-[#173e33]" dir="rtl">بـه‌هـم ← ب ه م</span>
@@ -372,6 +372,15 @@ export default function Home() {
                           </div>
                         ))}
                       </div>
+                      {!currentExamples.length && (
+                        <div className="rounded-2xl border border-[#e3ddcf] bg-[#f8f3e9] px-5 py-4 text-sm leading-6 text-[#655947]">
+                          {!current.connectsLeft && activePosition === 'medial'
+                            ? `${current.letter} has no true medial form: it may join the letter before it, but it never joins the letter after it.`
+                            : !current.connectsLeft && activePosition === 'initial'
+                              ? `${current.letter} has no true initial form. At the beginning of a word it keeps its isolated shape.`
+                              : `There is not yet a picture word that shows ${current.letter} in a true ${activePosition} form.`}
+                        </div>
+                      )}
                     </div>
                   </div>
 
