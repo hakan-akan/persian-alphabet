@@ -15,9 +15,9 @@ type VowelExample = {
 };
 
 const shortVowels = [
-  { latin: 'a', mark: 'َ', name: 'zabar / fathe', example: 'مَن', transliteration: 'man', cue: 'like a in “cat”' },
-  { latin: 'e', mark: 'ِ', name: 'zir / kasre', example: 'پِدَر', transliteration: 'pedar', cue: 'like e in “bed”' },
-  { latin: 'o', mark: 'ُ', name: 'pish / zamme', example: 'گُل', transliteration: 'gol', cue: 'like o in “more,” but shorter' },
+  { latin: 'a', mark: 'َ', anchored: 'بَ', position: 'above the letter', name: 'zabar / fathe', example: 'مَن', transliteration: 'man', cue: 'like a in “cat”' },
+  { latin: 'e', mark: 'ِ', anchored: 'بِ', position: 'below the letter', name: 'zir / kasre', example: 'پِدَر', transliteration: 'pedar', cue: 'like e in “bed”' },
+  { latin: 'o', mark: 'ُ', anchored: 'بُ', position: 'above the letter', name: 'pish / zamme', example: 'گُل', transliteration: 'gol', cue: 'like o in “more,” but shorter' },
 ] as const;
 
 const longVowels = [
@@ -36,9 +36,9 @@ const examples: VowelExample[] = [
 ];
 
 const vowelChoices = [
-  { value: 'a', mark: 'َ', label: 'a' },
-  { value: 'e', mark: 'ِ', label: 'e' },
-  { value: 'o', mark: 'ُ', label: 'o' },
+  { value: 'a', mark: 'بَ', label: 'a · above' },
+  { value: 'e', mark: 'بِ', label: 'e · below' },
+  { value: 'o', mark: 'بُ', label: 'o · above' },
 ] as const;
 
 function ColoredTransliteration({ text }: { text: string }) {
@@ -90,10 +90,11 @@ export function VowelLessons() {
             {shortVowels.map((vowel) => (
               <button key={vowel.latin} onClick={() => void speakPersian(vowel.example)} className="rounded-3xl border border-[#dfdbcf] bg-white p-5 text-left transition hover:-translate-y-1 hover:border-[#d69a4e] hover:shadow-md">
                 <div className="flex items-start justify-between gap-3">
-                  <div className="font-persian text-5xl font-bold text-[#173e33]" dir="rtl">{vowel.mark}</div>
+                  <div className="font-persian text-5xl font-bold text-[#173e33]" dir="rtl">{vowel.anchored}</div>
                   <Volume2 className="size-4 text-[#9a6424]" />
                 </div>
                 <p className="mt-3 text-sm font-bold text-[#29493d]">{vowel.latin} · {vowel.name}</p>
+                <p className="mt-1 text-xs font-semibold text-[#a6631d]">The mark sits {vowel.position}</p>
                 <p className="mt-1 text-xs text-[#7b857e]">{vowel.cue}</p>
                 <div className="mt-4 rounded-xl bg-[#f7f2e8] px-3 py-2 text-center">
                   <span className="font-persian text-2xl font-bold text-[#173e33]" dir="rtl">{vowel.example}</span>
@@ -137,7 +138,7 @@ export function VowelLessons() {
 
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             {examples.map((example) => (
-              <button key={example.plain} onClick={() => void speakPersian(example.plain)} className="rounded-2xl border border-[#e2ded3] bg-white p-4 text-center transition hover:border-[#d69a4e]">
+              <button key={example.plain} onClick={() => void speakPersian(example.marked)} className="rounded-2xl border border-[#e2ded3] bg-white p-4 text-center transition hover:border-[#d69a4e]">
                 <span className="text-4xl" role="img" aria-label={example.meaning}>{example.picture}</span>
                 <p className="font-persian mt-2 text-3xl font-bold text-[#173e33]" dir="rtl">{showMarks ? example.marked : example.plain}</p>
                 <p className="mt-2 text-sm font-bold"><ColoredTransliteration text={example.transliteration} /></p>
@@ -155,7 +156,7 @@ export function VowelLessons() {
           <div className="rounded-3xl border border-[#e0d8ca] bg-[#fff7e8] p-5">
             <p className="text-xs font-bold uppercase tracking-[.15em] text-[#a56c28]">Same letters, different vowels</p>
             <div className="mt-4 flex items-center justify-center gap-5">
-              <button onClick={() => void speakPersian('گل')} className="text-center"><span className="font-persian block text-4xl font-bold text-[#173e33]">گُل</span><span className="text-xs font-bold text-[#a6631d]">gol · flower</span></button>
+              <button onClick={() => void speakPersian('گُل')} className="text-center"><span className="font-persian block text-4xl font-bold text-[#173e33]">گُل</span><span className="text-xs font-bold text-[#a6631d]">gol · flower</span></button>
               <span className="text-[#b9ad9b]">/</span>
               <button onClick={() => void speakPersian('گِل')} className="text-center"><span className="font-persian block text-4xl font-bold text-[#173e33]">گِل</span><span className="text-xs font-bold text-[#a6631d]">gel · mud</span></button>
             </div>
@@ -164,7 +165,7 @@ export function VowelLessons() {
           <div className="rounded-3xl border border-[#d9e3dc] bg-[#eef5f0] p-5">
             <p className="text-xs font-bold uppercase tracking-[.15em] text-[#4c7462]">The hidden ezafe</p>
             <div className="mt-4 text-center">
-              <button onClick={() => void speakPersian('کتاب من')} className="font-persian text-4xl font-bold text-[#173e33]" dir="rtl">کتابِ من</button>
+              <button onClick={() => void speakPersian('کتابِ من')} className="font-persian text-4xl font-bold text-[#173e33]" dir="rtl">کتابِ من</button>
               <p className="mt-2 text-sm font-bold"><ColoredTransliteration text="ketâb-e man" /></p>
               <p className="mt-1 text-xs text-[#748078]">my book</p>
             </div>
@@ -183,7 +184,7 @@ export function VowelLessons() {
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <Button variant="outline" size="icon" className="rounded-full" onClick={() => void speakPersian(current.plain)} aria-label={`Hear ${current.plain}`}><Headphones /></Button>
+              <Button variant="outline" size="icon" className="rounded-full" onClick={() => void speakPersian(current.marked)} aria-label={`Hear ${current.marked}`}><Headphones /></Button>
               <span className="rounded-full bg-[#edf3ef] px-3 py-2 text-xs font-bold text-[#496257]">Score {score} / {question + (answer !== null ? 1 : 0)}</span>
             </div>
           </div>

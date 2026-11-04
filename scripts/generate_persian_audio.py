@@ -16,6 +16,9 @@ LETTER_NAMES = [
     "سین", "شین", "صاد", "ضاد", "طا", "ظا", "عین", "غین", "فِ", "قاف", "کاف", "گاف",
     "لام", "میم", "نون", "واو", "هِ", "یِ",
 ]
+VOWEL_PHRASES = [
+    "مَن", "پِدَر", "گُل", "کِتاب", "دِرَخت", "لِباس", "گِل", "کتابِ من",
+]
 
 
 def audio_name(text: str) -> str:
@@ -33,7 +36,7 @@ async def generate(text: str, semaphore: asyncio.Semaphore) -> None:
 async def main() -> None:
     examples = (ROOT / "app" / "examples.ts").read_text(encoding="utf-8")
     words = re.findall(r"word: '([^']+)'", examples)
-    phrases = sorted(set(words + LETTER_NAMES))
+    phrases = sorted(set(words + LETTER_NAMES + VOWEL_PHRASES))
     OUTPUT.mkdir(parents=True, exist_ok=True)
     semaphore = asyncio.Semaphore(6)
     await asyncio.gather(*(generate(text, semaphore) for text in phrases))
