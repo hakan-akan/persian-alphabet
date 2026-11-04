@@ -18,6 +18,7 @@ import {
   Shapes,
   Sparkles,
   Trophy,
+  Waves,
   Volume2,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,9 +27,10 @@ import { examplesForPosition, letterForms, type LetterPosition } from './example
 import { TracingPad } from './tracing-pad';
 import { ReviewPractice } from './review-practice';
 import { FamilyLessons } from './family-lessons';
+import { VowelLessons } from './vowel-lessons';
 import { speakPersian, SpeechPreferences } from './persian-speech';
 
-type Mode = 'learn' | 'trace' | 'families' | 'review' | 'quiz';
+type Mode = 'learn' | 'trace' | 'families' | 'vowels' | 'review' | 'quiz';
 export const dynamic = 'force-static';
 type ToolInput = Record<string, unknown>;
 type ModelTool = {
@@ -230,6 +232,7 @@ export default function Home() {
             <ModeButton active={mode === 'learn'} icon={<BookOpen />} label="Learn" onClick={() => setMode('learn')} />
             <ModeButton active={mode === 'trace'} icon={<PenLine />} label="Trace" onClick={() => setMode('trace')} />
             <ModeButton active={mode === 'families'} icon={<Shapes />} label="Families" onClick={() => setMode('families')} />
+            <ModeButton active={mode === 'vowels'} icon={<Waves />} label="Vowels" onClick={() => setMode('vowels')} />
             <ModeButton active={mode === 'review'} icon={<BrainCircuit />} label="Review" onClick={() => setMode('review')} />
             <ModeButton active={mode === 'quiz'} icon={<Trophy />} label="Quiz" onClick={() => setMode('quiz')} />
           </nav>
@@ -249,10 +252,10 @@ export default function Home() {
         <div className="mb-5 flex items-end justify-between gap-4">
           <div>
             <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.16em] text-[#a56c28]">
-              <Sparkles className="size-3.5" /> {mode === 'learn' ? `Lesson ${selectedIndex + 1} of 32` : mode === 'trace' ? `Writing practice · ${current.name}` : mode === 'families' ? 'Shape families' : mode === 'review' ? 'Memory practice' : 'Quick quiz'}
+              <Sparkles className="size-3.5" /> {mode === 'learn' ? `Lesson ${selectedIndex + 1} of 32` : mode === 'trace' ? `Writing practice · ${current.name}` : mode === 'families' ? 'Letter families' : mode === 'vowels' ? 'Vowel guide' : mode === 'review' ? 'Memory practice' : 'Quick quiz'}
             </p>
             <h1 className="font-display mt-2 text-2xl font-bold tracking-tight sm:text-3xl">
-              {mode === 'learn' ? 'Meet the Persian alphabet' : mode === 'trace' ? 'Build muscle memory' : mode === 'families' ? 'Separate look-alike letters' : mode === 'review' ? 'Review at the right time' : 'Test what you remember'}
+              {mode === 'learn' ? 'Meet the Persian alphabet' : mode === 'trace' ? 'Build muscle memory' : mode === 'families' ? 'Separate similar letters' : mode === 'vowels' ? 'Read the vowels you cannot see' : mode === 'review' ? 'Review at the right time' : 'Test what you remember'}
             </h1>
           </div>
           <div className="hidden w-[250px] sm:block">
@@ -469,6 +472,8 @@ export default function Home() {
 
           {mode === 'families' && <FamilyLessons onOpenLetter={(index) => selectLetter(index, 'learn')} />}
 
+          {mode === 'vowels' && <VowelLessons />}
+
           <AlphabetPanel selectedIndex={selectedIndex} learned={learned} onSelect={selectLetter} />
         </div>
 
@@ -481,6 +486,7 @@ export default function Home() {
         <MobileMode active={mode === 'learn'} icon={<BookOpen />} label="Learn" onClick={() => setMode('learn')} />
         <MobileMode active={mode === 'trace'} icon={<PenLine />} label="Trace" onClick={() => setMode('trace')} />
         <MobileMode active={mode === 'families'} icon={<Shapes />} label="Families" onClick={() => setMode('families')} />
+        <MobileMode active={mode === 'vowels'} icon={<Waves />} label="Vowels" onClick={() => setMode('vowels')} />
         <MobileMode active={mode === 'review'} icon={<BrainCircuit />} label="Review" onClick={() => setMode('review')} />
         <MobileMode active={mode === 'quiz'} icon={<Trophy />} label="Quiz" onClick={() => setMode('quiz')} />
       </nav>
@@ -504,7 +510,7 @@ function ModeButton({ active, icon, label, onClick }: { active: boolean; icon: R
 
 function MobileMode({ active, icon, label, onClick }: { active: boolean; icon: React.ReactNode; label: string; onClick: () => void }) {
   return (
-    <button onClick={onClick} className={`flex min-w-16 flex-col items-center gap-1 rounded-xl px-2 py-2 text-[11px] font-bold transition ${active ? 'bg-[#173e33] text-white' : 'text-[#748078]'}`}>
+    <button onClick={onClick} className={`flex min-w-0 flex-col items-center gap-1 rounded-xl px-1 py-2 text-[10px] font-bold transition sm:px-2 sm:text-[11px] ${active ? 'bg-[#173e33] text-white' : 'text-[#748078]'}`}>
       <span className="[&_svg]:size-4">{icon}</span>{label}
     </button>
   );
