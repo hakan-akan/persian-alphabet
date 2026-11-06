@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { BookOpenText, ChevronLeft, ChevronRight, Eye, EyeOff, Search } from 'lucide-react';
+import { BookOpenText, ChevronLeft, ChevronRight, Eye, EyeOff, Languages, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { alphabet } from './alphabet';
 import { curatedLoanwords } from './curated-loanwords';
+import { turkishBridgeWords } from './turkish-bridge-words';
 
 const pageSize = 12;
 const vowelMarks = /[\u064b-\u065f\u0670]/g;
@@ -16,37 +17,61 @@ const separatedLetters = (word: string) => Array.from(plainPersian(word).normali
   .filter((character) => persianLetters.test(character));
 
 export function DictionaryPage() {
+  const [collection, setCollection] = useState<'turkish' | 'english'>('turkish');
   const [query, setQuery] = useState('');
   const [focusLetter, setFocusLetter] = useState<string | null>(null);
   const [showVowels, setShowVowels] = useState(false);
   const [page, setPage] = useState(1);
 
+  const entries = useMemo(() => collection === 'turkish'
+    ? turkishBridgeWords.map((entry) => ({
+      familiar: entry.turkish,
+      persian: entry.persian,
+      vowelled: entry.vowelled,
+      transliteration: entry.transliteration,
+      tag: entry.category,
+    }))
+    : curatedLoanwords.map((entry) => ({
+      familiar: entry.english,
+      persian: entry.persian,
+      vowelled: entry.vowelled,
+      transliteration: entry.transliteration,
+      tag: entry.meaning,
+    })), [collection]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase();
-    return curatedLoanwords.filter((entry) => {
-      const haystack = `${entry.english} ${entry.persian} ${entry.transliteration} ${entry.meaning}`.toLocaleLowerCase();
+    return entries.filter((entry) => {
+      const haystack = `${entry.familiar} ${entry.persian} ${entry.transliteration} ${entry.tag}`.toLocaleLowerCase();
       const hasLetter = !focusLetter || separatedLetters(entry.persian).some((letter) => normalizedLetter(letter) === normalizedLetter(focusLetter));
       return hasLetter && (!needle || haystack.includes(needle));
     });
-  }, [focusLetter, query]);
+  }, [entries, focusLetter, query]);
 
-  useEffect(() => setPage(1), [focusLetter, query]);
+  useEffect(() => setPage(1), [collection, focusLetter, query]);
   const pageCount = Math.max(1, Math.ceil(filtered.length / pageSize));
   const visible = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <article className="overflow-hidden rounded-[32px] border border-[#d8d5c9] bg-[#fffdf8] shadow-[0_18px_55px_rgba(42,61,51,.08)]">
       <div className="border-b border-[#e2ded3] bg-[#173e33] px-6 py-7 text-white sm:px-9">
-        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-[#a9c8b9]"><BookOpenText className="size-4" /> Familiar English · Persian letters</p>
-        <h2 className="font-display mt-2 text-2xl font-bold">Use words you know to remember the script</h2>
-        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#c7d8d0]">These {curatedLoanwords.length} recognizable English words have a clear Persian or Iranian source. Start with the familiar English word, then study how its source is built from Persian letters.</p>
+        <p className="flex items-center gap-2 text-xs font-bold uppercase tracking-[.18em] text-[#a9c8b9]"><BookOpenText className="size-4" /> {collection === 'turkish' ? 'Türkçe köprü · Farsça harfler' : 'Familiar English · Persian letters'}</p>
+        <h2 className="font-display mt-2 text-2xl font-bold">{collection === 'turkish' ? 'Bildiğiniz Türkçe kelimelerle Farsça okuyun' : 'Use words you know to remember the script'}</h2>
+        <p className="mt-2 max-w-3xl text-sm leading-6 text-[#c7d8d0]">{collection === 'turkish'
+          ? `Bu ${turkishBridgeWords.length} kelime Türkçeden zaten tanıdığınız biçimleri Farsça yazıyla eşleştirir. Kelimeyi tanıyın, sonra Farsça harflerini tek tek inceleyin.`
+          : `These ${curatedLoanwords.length} recognizable English words have a clear Persian or Iranian source. Start with the familiar English word, then study how its source is built from Persian letters.`}</p>
       </div>
 
       <div className="p-6 sm:p-9">
+        <div className="mb-5 inline-flex rounded-2xl border border-[#dcd8cc] bg-[#f7f4ec] p-1" aria-label="Choose familiar language">
+          <button onClick={() => setCollection('turkish')} className={`flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold transition ${collection === 'turkish' ? 'bg-[#173e33] text-white shadow-sm' : 'text-[#66736c] hover:text-[#173e33]'}`} aria-pressed={collection === 'turkish'}><Languages className="size-4" /> Türkçe köprü</button>
+          <button onClick={() => setCollection('english')} className={`rounded-xl px-4 py-2.5 text-sm font-bold transition ${collection === 'english' ? 'bg-[#173e33] text-white shadow-sm' : 'text-[#66736c] hover:text-[#173e33]'}`} aria-pressed={collection === 'english'}>English bridge</button>
+        </div>
+
         <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
           <label className="relative block">
             <Search className="absolute left-4 top-1/2 size-5 -translate-y-1/2 text-[#7c8981]" />
-            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Find a familiar word, Persian source, or letter…" className="h-13 w-full rounded-2xl border border-[#dcd8cc] bg-white pl-12 pr-4 text-sm outline-none transition focus:border-[#bd7929] focus:ring-2 focus:ring-[#f0d6ae]" />
+            <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder={collection === 'turkish' ? 'Türkçe kelime, Farsça yazım veya harf ara…' : 'Find a familiar word, Persian source, or letter…'} className="h-13 w-full rounded-2xl border border-[#dcd8cc] bg-white pl-12 pr-4 text-sm outline-none transition focus:border-[#bd7929] focus:ring-2 focus:ring-[#f0d6ae]" />
           </label>
           <Button variant="outline" className="h-13 rounded-2xl px-5" onClick={() => setShowVowels((value) => !value)} aria-pressed={showVowels}>
             {showVowels ? <EyeOff /> : <Eye />} {showVowels ? 'Hide short vowels' : 'Add short vowels'}
@@ -73,13 +98,13 @@ export function DictionaryPage() {
         {visible.length ? (
           <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
             {visible.map((entry) => (
-              <section key={entry.english} className="rounded-3xl border border-[#dfdbd0] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#d4a264] hover:shadow-md">
+              <section key={`${collection}-${entry.familiar}-${entry.persian}`} className="rounded-3xl border border-[#dfdbd0] bg-white p-5 transition hover:-translate-y-0.5 hover:border-[#d4a264] hover:shadow-md">
                 <div className="flex items-start justify-between gap-3">
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-[.13em] text-[#9a6a31]">Familiar English word</p>
-                    <h3 className="font-display mt-1 text-xl font-bold text-[#26362f]">{entry.english}</h3>
+                    <p className="text-[10px] font-bold uppercase tracking-[.13em] text-[#9a6a31]">{collection === 'turkish' ? 'Tanıdığınız Türkçe kelime' : 'Familiar English word'}</p>
+                    <h3 className="font-display mt-1 text-xl font-bold text-[#26362f]">{entry.familiar}</h3>
                   </div>
-                  <span className="max-w-36 rounded-full bg-[#f7f2e8] px-2.5 py-1 text-right text-[10px] font-semibold text-[#786b59]">{entry.meaning}</span>
+                  <span className="max-w-36 rounded-full bg-[#f7f2e8] px-2.5 py-1 text-right text-[10px] font-semibold text-[#786b59]">{entry.tag}</span>
                 </div>
 
                 <div className="mt-4 rounded-2xl bg-[#edf3ef] p-4 text-center">
@@ -120,8 +145,13 @@ export function DictionaryPage() {
         )}
 
         <div className="mt-7 rounded-2xl bg-[#f7f2e8] p-4 text-xs leading-5 text-[#6b604f]">
-          <p><strong>Why fewer words?</strong> This set deliberately favors recognizable English words and useful Persian letter patterns. It leaves out obscure technical, historical, and personal names even when a dictionary classifies them as Persian-derived.</p>
-          <p className="mt-2">Origins were checked against <a className="font-bold text-[#8d581c] underline" href="https://www.iranicaonline.org/articles/english/" target="_blank" rel="noreferrer">Encyclopaedia Iranica</a> and the <a className="font-bold text-[#8d581c] underline" href="https://en.wikipedia.org/wiki/List_of_English_words_of_Persian_origin" target="_blank" rel="noreferrer">referenced etymology list</a>. Some words reached English through intermediary languages.</p>
+          {collection === 'turkish' ? <>
+            <p><strong>Neden “köprü” kelimeleri?</strong> Liste yalnızca köken bilgisi vermek için değil, Farsça harfleri daha hızlı tanımanız için hazırlandı. Farsçadan Türkçeye geçen kelimelerin yanında iki dilde de kullanılan bölgesel ve uluslararası kelimeler bulunur.</p>
+            <p className="mt-2">Anlamı belirgin biçimde değişmiş yanıltıcı benzerlikler özellikle dışarıda bırakıldı. Seçimde Türkiye Türkçesindeki Farsça kökenli kelimeler üzerine akademik çalışmalar ve <a className="font-bold text-[#8d581c] underline" href="https://dergipark.org.tr/tr/download/article-file/3704597" target="_blank" rel="noreferrer">Türkçe–Farsça ortak kelimeler çalışması</a> temel alındı.</p>
+          </> : <>
+            <p><strong>Why fewer words?</strong> This set deliberately favors recognizable English words and useful Persian letter patterns. It leaves out obscure technical, historical, and personal names even when a dictionary classifies them as Persian-derived.</p>
+            <p className="mt-2">Origins were checked against <a className="font-bold text-[#8d581c] underline" href="https://www.iranicaonline.org/articles/english/" target="_blank" rel="noreferrer">Encyclopaedia Iranica</a> and the <a className="font-bold text-[#8d581c] underline" href="https://en.wikipedia.org/wiki/List_of_English_words_of_Persian_origin" target="_blank" rel="noreferrer">referenced etymology list</a>. Some words reached English through intermediary languages.</p>
+          </>}
         </div>
       </div>
     </article>
